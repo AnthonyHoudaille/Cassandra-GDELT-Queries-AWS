@@ -1,4 +1,4 @@
-Contributors : Raphael Lederman, Anatoli De Bradke, Alexandre Bec, Anthony Houdaille, Thomas Binetruy
+Contributors : Raphael Lederman, Anatoli De Bradke, Alexandre Bec, Mael Fabien, Thomas Binetruy
 
 ![alt text](Images/header.png)
 
@@ -35,9 +35,9 @@ In our 8 EC2 instances we have :
 - 5 Slaves nodes with apache-Spark-2.3.2 and apache-cassandra-3.11.2, including zookeeper installed on 2 of these nodes.
 - The last one is a node created for the resilience of the Master. We Installed zookeeper in it. 
 
-The Slaves resilience is automatically handled by the master Spark. The Masters resilience is handled by Zookeper. For the Zookeeper, refer to the ReadMe of this folder : https://github.com/maelfabien/gdelt/tree/master/Zookeeper
+The Slaves resilience is automatically handled by the master Spark. The Masters resilience is handled by Zookeper. For the Zookeeper, refer to the ReadMe of this folder : https://github.com/anthonyhoudaille/gdelt/tree/master/Zookeeper
 
-The cluster EMR is used to transfer data from S3 to our Cassandra nodes on EC2. The reason for this architecture is that our EC2 Spark instaces could not connect to S3 due to issues with package dependencies. For Cassandra, refer to the ReadMe of this folder : https://github.com/maelfabien/gdelt/tree/master/Cassandra
+The cluster EMR is used to transfer data from S3 to our Cassandra nodes on EC2. The reason for this architecture is that our EC2 Spark instaces could not connect to S3 due to issues with package dependencies. For Cassandra, refer to the ReadMe of this folder : https://github.com/anthonyhoudaille/gdelt/tree/master/Cassandra
 
 We do not find any solution :
 [link](https://docs.hortonworks.com/HDPDocuments/HDCloudAWS/HDCloudAWS-1.8.0/bk_hdcloud-aws/content/s3-trouble/index.html)
@@ -100,14 +100,14 @@ fileDownloader("http://data.gdeltproject.org/gdeltv2/masterfilelist-translation.
 
 Then, put the file that contains the list of the files to download into the S3 bucket :
 ``` scala
-awsClient.putObject("fabien-mael-telecom-gdelt2018", "masterfilelist.txt", new File("/tmp/masterfilelist.txt") )
-awsClient.putObject("fabien-mael-telecom-gdelt2018", "masterfilelist_translation.txt", new File( "/tmp/masterfilelist_translation.txt") )
+awsClient.putObject("telecom-gdelt2018", "masterfilelist.txt", new File("/tmp/masterfilelist.txt") )
+awsClient.putObject("telecom-gdelt2018", "masterfilelist_translation.txt", new File( "/tmp/masterfilelist_translation.txt") )
 ```
 
 We will focus only on year 2018 :
 ``` scala
 val list_csv = spark.read.format("csv").option("delimiter", " ").
-                    csv("s3a://fabien-mael-telecom-gdelt2018/masterfilelist.txt").
+                    csv("s3a://telecom-gdelt2018/masterfilelist.txt").
                     withColumnRenamed("_c0","size").
                     withColumnRenamed("_c1","hash").
                     withColumnRenamed("_c2","url")
@@ -137,7 +137,7 @@ We duplicate this task for the translation data. Then, we need to create four da
 
 This is done the following way :
 ``` scala
-val mentionsRDD_trans = sc.binaryFiles("s3a://fabien-mael-telecom-gdelt2018/201801*translation.mentions.CSV.zip"). // charger quelques fichers via une regex
+val mentionsRDD_trans = sc.binaryFiles("s3a://telecom-gdelt2018/201801*translation.mentions.CSV.zip"). // charger quelques fichers via une regex
    flatMap {  // decompresser les fichiers
        case (name: String, content: PortableDataStream) =>
           val zis = new ZipInputStream(content.open)
